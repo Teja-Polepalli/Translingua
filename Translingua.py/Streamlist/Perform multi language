@@ -1,0 +1,78 @@
+import gradio as gr
+from transformers import MarianMTModel, MarianTokenizer
+
+# Language to model mapping
+language_model_map = {
+    "French": "Helsinki-NLP/opus-mt-en-fr",
+    "German": "Helsinki-NLP/opus-mt-en-de",
+    "Spanish": "Helsinki-NLP/opus-mt-en-es",
+    "Italian": "Helsinki-NLP/opus-mt-en-it",
+    "Hindi": "Helsinki-NLP/opus-mt-en-hi"
+}
+
+def translate_text(text, target_language):
+    model_name = language_model_map[target_language]
+    tokenizer = MarianTokenizer.from_pretrained(model_name)
+    model = MarianMTModel.from_pretrained(model_name)
+
+    inputs = tokenizer(text, return_tensors="pt", padding=True)
+    translated = model.generate(**inputs)
+
+    translated_text = tokenizer.decode(
+        translated[0], skip_special_tokens=True
+    )
+    return translated_text
+
+
+# Custom CSS (as shown in PDF)
+custom_css = """
+body {
+    background-color: #f5f7fa !important;
+}
+button {
+    background-color: #1f77b4 !important;
+    color: white !important;
+    border-radius: 8px !important;
+    padding: 12px 24px !important;
+    font-size: 16px !important;
+    transition: all 0.3s ease-in-out !important;
+}
+button:hover {
+    background-color: #ff7f0e !important;
+    transform: scale(1.05);
+}
+"""
+
+# Gradio UI
+with gr.Blocks(css=custom_css) as demo:
+    gr.Markdown("## 🌍 AI Multi-Language Translator")
+
+    with gr.Row():
+        input_text = gr.Textbox(
+            lines=4,
+            label="Enter English Text",
+            placeholder="Type something in English..."
+        )
+
+    with gr.Row():
+        target_lang = gr.Dropdown(
+            list(language_model_map.keys()),
+            label="Select Target Language",
+            value="French"
+        )
+
+    with gr.Row():
+        output_text = gr.Textbox(
+            lines=4,
+            label="Translated Text"
+        )
+
+    translate_btn = gr.Button("Translate")
+
+    translate_btn.click(
+        fn=translate_text,
+        inputs=[input_text, target_lang],
+        outputs=output_text
+    )
+
+demo.launch()

@@ -1,0 +1,10 @@
+def translate_text(text, target_lang):
+    if not text.strip():
+        return" Please enter text to translate."
+    if target_lang not in translators:
+        return "X Selected language not supported or model not loaded."
+    try:
+        result=translators [target_lang] (text)
+        return result[0] ['translation_text']
+    except Exception as e:
+        return f" Translation failed: {str(e)}"
